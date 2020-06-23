@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="./draw.css"></link>
+</head>
+<body>
+<div class='topl'>
+	<button id='undo' class='tooltip'>Undo
+		<span class="tooltiptext">Ctrl Z</span>
+	</button>
+	<button id='stick' class='mode tooltip'>Stick
+		<span class="tooltiptext">Start At Last Finished Point</span>
+	</button>
+	<button id='dash' class='mode tooltip'>Dash
+		<span class="tooltiptext">Dashed Line</span>
+	</button>
+	<button id='filled' class='mode tooltip'>Fill
+		<span class="tooltiptext">Auto Fill</span>
+	</button>
+	<select class='sel'>
+		<option class='black'>black</option>
+		<option class='gray'>gray</option>
+		<option class='red'>red</option>
+		<option class='magenta'>magenta</option>
+		<option class='blue'>blue</option>
+		<option class='cyan'>cyan</option>
+		<option class='lightblue'>lightblue</option>
+		<option class='green'>green</option>
+		<option class='lightgreen'>lightgreen</option>
+		<option class='orange'>orange</option>
+		<option class='yellow'>yellow</option>
+	</select>
+	<select class='gal'>
+		<option class='none'>none</option>
+		<option class='black'>black</option>
+		<option class='gray'>gray</option>
+		<option class='red'>red</option>
+		<option class='magenta'>magenta</option>
+		<option class='blue'>blue</option>
+		<option class='cyan'>cyan</option>
+		<option class='lightblue'>lightblue</option>
+		<option class='green'>green</option>
+		<option class='lightgreen'>lightgreen</option>
+		<option class='orange'>orange</option>
+		<option class='yellow'>yellow</option>
+	</select>
+	<select class='mel'>
+		<option class='none'>none</option>
+		<option class='black'>black</option>
+		<option class='gray'>gray</option>
+		<option class='red'>red</option>
+		<option class='magenta'>magenta</option>
+		<option class='blue'>blue</option>
+		<option class='cyan'>cyan</option>
+		<option class='lightblue'>lightblue</option>
+		<option class='green'>green</option>
+		<option class='lightgreen'>lightgreen</option>
+		<option class='orange'>orange</option>
+		<option class='yellow'>yellow</option>
+	</select>
+	<select class='dal'>
+		<option class='none'>none</option>
+		<option class='black'>black</option>
+		<option class='gray'>gray</option>
+		<option class='red'>red</option>
+		<option class='magenta'>magenta</option>
+		<option class='blue'>blue</option>
+		<option class='cyan'>cyan</option>
+		<option class='lightblue'>lightblue</option>
+		<option class='green'>green</option>
+		<option class='lightgreen'>lightgreen</option>
+		<option class='orange'>orange</option>
+		<option class='yellow'>yellow</option>
+	</select>
+	<select class='pal'>
+		<option class='none'>none</option>
+		<option class='black'>black</option>
+		<option class='gray'>gray</option>
+		<option class='red'>red</option>
+		<option class='magenta'>magenta</option>
+		<option class='blue'>blue</option>
+		<option class='cyan'>cyan</option>
+		<option class='lightblue'>lightblue</option>
+		<option class='green'>green</option>
+		<option class='lightgreen'>lightgreen</option>
+		<option class='orange'>orange</option>
+		<option class='yellow'>yellow</option>
+	</select>
+	<input class='put' type='number' value=5></input>
+	<div class='movebtn tooltip'>
+		<span class="tooltiptext">Select Drawn Element to Move</span>
+		<div class='mb move_firs'>&#x21E4</div>
+		<div class='mb move_prev'>&#x2190</div>
+		<div class='label'></div>
+		<div class='mb move_next'>&#x2192</div>
+		<div class='mb move_last'>&#x21E5</div>
+	</div>
+</div>
+<div class='option'>
+	<div class='bar draw tooltip'>
+		<span class="tooltiptext">Free hand</span>
+	</div>
+	<div class='bar line tooltip'>
+		<span class="tooltiptext">Point Sketch</span>
+	</div>
+	<div class='bar rectangle tooltip'>
+		<span class="tooltiptext">Rectangle</span>
+	</div>
+	<div class='bar poly tooltip'>
+		<span class="tooltiptext">Polygon</span>
+	</div>
+	<div class='bar circ tooltip'>
+		<span class="tooltiptext">Two Point Circle</span>
+	</div>
+	<div class='bar circl tooltip'>
+		<span class="tooltiptext">Circle</span>
+	</div>
+	<div class='bar bezi tooltip'>
+		<span class="tooltiptext">Bezier Curve</span>
+	</div>
+	<div class='bar erase tooltip'>
+		<span class="tooltiptext">Eraser</span>
+	</div>
+	<div class='bar move tooltip'>
+		<span class="tooltiptext">Move</span>
+	</div>
+	<div class='bar rotat tooltip'>
+		<span class="tooltiptext">Rotate</span>
+	</div>
+	<div class='bar scal tooltip'>
+		<span class="tooltiptext">Scale</span>
+	</div>
+	<div class='bar sweep tooltip'>
+		<span class="tooltiptext">Sweep</span>
+	</div>
+</div>
+<canvas id='paint'></canvas>
+
+<div class="lra arrow-up"></div>
+<div class="lra arrow-down"></div>
+<div class="uda arrow-left"></div>
+<div class="uda arrow-right"></div>
+
+<script src="./draw.js"></script>
+</body>
+</html>
