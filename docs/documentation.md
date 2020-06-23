@@ -55,7 +55,7 @@
 		open `draw.css`, add background image. 
 	</li>
 	<li>
-		open `draw.js`, use const to collect your app, add listen to click, if clicked, set the mode (better to increment 1 from last one), remember to call turn_off() and assign esp to false. 
+		open `draw.js`, use const to collect your app, add listen to click, if clicked, set the mode (better to increment 1 from last one), remember to call turn_off() and assign esp and isolate. 
 	</li>
 	<li>
 		define a op_ function, which draws the element based on mouse vertex. 
@@ -86,7 +86,7 @@
 		open `draw.css`, add background image. 
 	</li>
 	<li>
-		open `draw.js`, use const to collect your app, add listen to click, if clicked, set the mode (better to increment 1 from last one), remember to call turn_off() and assign esp to false. 
+		open `draw.js`, use const to collect your app, add listen to click, if clicked, set the mode (better to increment 1 from last one), remember to call turn_off() and assign esp and isolate. 
 	</li>
 	<li>
 		define mm_, mu_ fuctions, which are mousemove and mouseup. 
