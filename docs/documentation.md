@@ -73,7 +73,7 @@
 </ol>
 <br /><br />
 
-# how to add new base App?
+# how to add new afterward App?
 <hr>
 <ol>
 	<li>
