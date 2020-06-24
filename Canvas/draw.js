@@ -456,7 +456,7 @@ function pascal(row, col){
 function beach(t, pts){
   var row = pts.length - 1;
   dx = 0;
-  dy = 0
+  dy = 0;
   for(let i = 0; i <= row; i++){
     let pre = pascal(row, i) * ((1 - t) ** (row - i)) * (t ** i);
     dx += pre * pts[i].x;
