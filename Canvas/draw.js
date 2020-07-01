@@ -62,13 +62,14 @@ var polyc = null;
 var moving = null;
 var moved = {};
 
+var isolate = false; 
+
 let drawing = false;
 let finished = true;
 let sticked = false;
 let points = [];
 let pathsry = [];
 let esp = true;
-var isolate = false; 
 
 put.addEventListener('click', ()=>{
   isolate = true; 
