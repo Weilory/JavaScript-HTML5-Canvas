@@ -22,6 +22,18 @@
 </ol>
 <br /><br />
 
+# SVG Parser
+<hr>
+<p>
+	Canvas can't be directly converted into svg format, althrough all paths are collected. Therefore we use a svg pharser to convert drawn elements into svg Path tags, so they can be animated in css. 
+</p>
+
+# Group (Copy and Paste)
+<hr>
+<p>
+	Any copied item despite of quantity, will be regarded as an instance of Group class. Group class only execute afterwards functions, they have different moved assign , center calculation, play display and undo. they all needs to be redefined. However, a large proportion of the initial ones are usable, which makes things easier. 
+</p>
+
 # introduction
 <hr>
 <p>There are three kinds of apps, 
