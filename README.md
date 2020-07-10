@@ -13,6 +13,7 @@ Pure JS HTML5 context2d canvas, user can save what they have drawn in svg outstr
 <ol>
   <li>Language: English</li>
   <li>Canvas element supported browser</li>
+  <li>es6</li>
 </ol>
 <br /><br />
 <h1>Usage</h1>
