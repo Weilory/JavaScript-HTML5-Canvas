@@ -37,6 +37,338 @@ const arrow_down = document.querySelector('.arrow-down');
 const arrow_left = document.querySelector('.arrow-left');
 const arrow_right = document.querySelector('.arrow-right');
 
+class Group{
+  static centroid(pts){
+    var rx = 0; 
+    var ry = 0; 
+    for(let i = 0; i < pts.length; i++){
+      rx += pts[i].x
+      ry += pts[i].y;
+    }
+    return {
+      x: (Math.round(1000*rx/pts.length))/1000,
+      y: (Math.round(1000*ry/pts.length))/1000, 
+    }; 
+  }
+
+  constructor(){
+    this._pathsry = []; 
+    this._indicate = []; 
+    this._linestyle = []; 
+    this._gradient = []; 
+    this._diravitive = [];
+    this._filling = [];
+    this._centers = [];
+    this._hardcore = [];
+    this.center = null; 
+    this.associated = null; 
+  }
+
+  initialize(ind){
+    // ind => moving: current MOVE index
+    for(let i=ind; i<pathsry.length; i++){
+      if(['move', 'rotate', 'scale', 'group move', 'group rotate', 'group scale'].includes(indicate[i])){continue;};
+      if(indicate[i] == 'group'){
+        this.appender(pathsry[i]); 
+        continue; 
+      }
+      this._indicate.push(indicate[i]);
+      this._gradient.push(gradient[i]);
+      this._diravitive.push(diravitive[i]);
+      this._filling.push(filling[i]);   
+      this._centers.push({x:centers[i].x,y:centers[i].y});
+      var patcol = []; 
+      for(let j=0;j<pathsry[i].length;j++){
+        patcol.push({x: pathsry[i][j].x, y: pathsry[i][j].y}); 
+      }
+      this._pathsry.push(patcol); 
+      var ficol = [];
+      var secol = [];  
+      for(let j=0;j<hardcore[i][0].length;j++){
+        ficol.push(hardcore[i][0][j]);
+        secol.push(hardcore[i][1][j]);
+      }
+      this._hardcore.push([ficol, secol]); 
+      var lscol = []; 
+      for(let j=0;j<linestyle[i].length;j++){
+        lscol.push(linestyle[i][j]); 
+      }
+      this._linestyle.push(lscol); 
+    }
+    this.center = Group.centroid(this._centers);  
+  }
+
+  clone(){
+    var newG = new Group();
+    for(let i=0; i<this._pathsry.length; i++){
+      newG._indicate.push(this._indicate[i]);
+      newG._gradient.push(this._gradient[i]);
+      newG._diravitive.push(this._diravitive[i]);
+      newG._filling.push(this._filling[i]);
+      newG._centers.push(this._centers[i]);
+      var patcol = []; 
+      for(let j=0;j<this._pathsry[i].length;j++){
+        patcol.push({x: this._pathsry[i][j].x, y: this._pathsry[i][j].y}); 
+      } 
+      newG._pathsry.push(patcol);
+      var ficol = [];
+      var secol = []; 
+      for(let j=0;j<this._hardcore[i][0].length;j++){
+        ficol.push(this._hardcore[i][0][j]); 
+        secol.push(this._hardcore[i][1][j]);
+      }
+      newG._hardcore.push([ficol, secol]);
+      var lscol = []; 
+      for(let j=0;j<this._linestyle[i].length;j++){
+        lscol.push(this._linestyle[i][j]); 
+      }
+      newG._linestyle.push(lscol);
+    }
+    newG.center = Group.centroid(newG._centers); 
+    return newG; 
+  }
+
+  appender(cls){
+    for(let i=0;i<cls._pathsry.length;i++){
+      this._indicate.push(cls._indicate[i]);
+      this._gradient.push(cls._gradient[i]); 
+      this._diravitive.push(cls._diravitive[i]);
+      this._filling.push(cls._filling[i]);
+      this._centers.push(cls._centers[i]);
+      var patcol = []; 
+      for(let j=0;j<cls._pathsry[i].length;j++){
+        patcol.push({x: cls._pathsry[i][j].x, y: cls._pathsry[i][j].y}); 
+      } 
+      this._pathsry.push(patcol);
+      var ficol = [];
+      var secol = [];
+      for(let j=0;j<cls._hardcore[i][0].length;j++){
+        ficol.push(cls._hardcore[i][0][j]);
+        secol.push(cls._hardcore[i][1][j]);
+      }
+      this._hardcore.push([ficol, secol]); 
+      var lscol = []; 
+      for(let j=0;j<cls._linestyle[i].length;j++){
+        lscol.push(cls._linestyle[i][j]); 
+      }
+      this._linestyle.push(lscol); 
+    }
+    this.center = Group.centroid(this._centers); 
+    return this; 
+  }
+
+  op_group(){
+    for(let d=0;d<this._pathsry.length;d++){
+      ctx.lineWidth = this._diravitive[d]; 
+      ctx.strokeStyle = this._gradient[d]
+      ctx.setLineDash(this._linestyle[d]); 
+      var patarr = this._pathsry[d];
+      switch(this._indicate[d]){
+          case 'free hand':
+            op_line(patarr);
+          break;
+          case 'point sketch':
+            op_line(patarr);
+          break;
+          case 'rectangle':
+            op_poly(patarr);
+          break;
+          case 'two point circle':
+            op_circ(patarr);
+          break;
+          case 'circle':
+            op_circl(patarr);
+          break;
+          case 'bezier curve':
+            op_bezi(patarr);
+          break;
+          case 'erase':
+            op_poly(patarr);
+          break;
+          case 'polygon':
+            op_poly(patarr);
+          break; 
+        }
+        if(this._filling[d]){
+          ctx.fillStyle = this._gradient[d];
+            ctx.fill();
+        }
+    }
+  }
+
+  group_move(e, that){
+    var dif = get_dif(e); 
+    for(let i=0;i<that._centers.length;i++){
+      this._centers[i] = {x:that._centers[i].x + dif[0], y:that._centers[i].y + dif[1]}; 
+    }
+    for(let i=0;i<that._pathsry.length;i++){
+        if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(that._indicate[i])){
+          var want = []; 
+          that._pathsry[i].forEach(pt=>{
+             want.push({x: pt.x + dif[0], y: pt.y + dif[1]});
+          }); 
+          this._pathsry[i] = want; 
+        }else{
+          this._pathsry[i] = [
+            {x: that._pathsry[i][0].x + dif[0], y: that._pathsry[i][0].y + dif[1]},
+              {x: that._pathsry[i][1].x + dif[0], y: that._pathsry[i][1].y + dif[1]}
+          ];
+        }
+    }
+    this.center = Group.centroid(this._centers);
+    drawPaths(); 
+  }
+
+  group_rotate(e, that){
+    var rt = rotate_degree(that.center, previous, oMousePos(e)); 
+    for(let i=0;i<that._pathsry.length;i++){
+        if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(that._indicate[i])){
+          var want = []; 
+          that._pathsry[i].forEach(pt=>{
+            want.push(rotate_one(that.center, pt, rt)); 
+          }); 
+          this._pathsry[i] = want; 
+      }else{
+        this._pathsry[i] = [
+          rotate_one(that.center, that._pathsry[i][0], rt),
+          rotate_one(that.center, that._pathsry[i][1], rt)
+        ]; 
+      }
+    }
+    drawPaths(); 
+  }
+
+  static push_ratio(mou, cen){
+    return {x:(mou.x-cen.x)/(previous.x-cen.x), y:(mou.y-cen.y)/(previous.y-cen.y)}; 
+  }
+
+  group_scale(e, that){
+    var ratio = Group.push_ratio(oMousePos(e), this.center); 
+    for(let i=0;i<that._pathsry.length;i++){
+        if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(that._indicate[i])){
+          var want = []; 
+          that._pathsry[i].forEach(pt=>{
+              want.push({x: (pt.x-that.center.x)*ratio.x+that.center.x, y: (pt.y-that.center.y)*ratio.y+that.center.y});
+          }); 
+          this._pathsry[i] = want; 
+      }else{
+        this._pathsry[i] = [
+          {x: (that._pathsry[i][0].x-that.center.x)*ratio.x+that.center.x, y: (that._pathsry[i][0].y-that.center.y)*ratio.y+that.center.y},
+              {x: (that._pathsry[i][1].x-that.center.x)*ratio.x+that.center.x, y: (that._pathsry[i][1].y-that.center.y)*ratio.y+that.center.y}
+        ];
+      }
+    }
+    drawPaths(); 
+  }
+
+  publish(){
+    for(let i=0; i<this._pathsry.length; i++){
+      oneSvgPath(this._pathsry[i], this._indicate[i], this._linestyle[i], this._hardcore[i], this._diravitive[i], this._filling[i]);
+    }
+  }
+
+  static regret(){
+    var i = Object.keys(moved)[Object.keys(moved).length - 1];
+    pathsry[moved[i][0]] = moved[i][1];
+    delete moved[i]; 
+    step_down();
+    drawPaths();
+  }
+}
+
+function ctrl_c_group(){
+  if(moving == null) return; 
+  var gg = new Group();
+  gg.initialize(moving); 
+  var cgg = gg.clone(); 
+  cgg.associated = gg; 
+  pathsry.push(cgg); 
+  indicate.push('group'); 
+  linestyle.push(null); 
+  gradient.push(null); 
+  hardcore.push(null); 
+  diravitive.push(null); 
+  filling.push(null); 
+  centers.push(null); 
+  drawPaths(); 
+  assign_l_l(); 
+}
+
+function md_base_group(e, name){
+  var tg = pathsry[moving]; 
+  tg.associated = tg.clone();
+  previous = oMousePos(e); 
+  indicate.push(name);
+  pathsry.push(null);
+  linestyle.push(null);
+  gradient.push(null);
+  hardcore.push(null);
+  diravitive.push(null);
+  filling.push(null);
+  centers.push(null); 
+  var cc = indicate.length-1;
+  moved[cc] = [moving, pathsry[moving].clone()];
+}
+
+function mm_move_group(e){
+  var th = pathsry[moving]; 
+  var that = th.associated; 
+  th.group_move(e, that); 
+}
+
+function mm_rotate_group(e){
+  var th = pathsry[moving];
+  var that = th.associated; 
+  th.group_rotate(e, that);
+}
+
+function mm_scale_group(e){
+  var th = pathsry[moving];
+  var that = th.associated;
+  th.group_scale(e, that); 
+}
+
+class Singleton{
+  constructor(){
+    this.ids = 0; 
+  }
+
+  new_id(){
+    this.ids += 1; 
+    return `gra${this.ids}`; 
+  }
+
+  last_id(){
+    return `gra${this.ids}`;
+  }
+
+  rein(){
+    this.ids = 0; 
+  }
+}
+
+const sgl = new Singleton(); 
+
+class SvgParser{
+  constructor(){
+    this.mstr = ""; 
+    this.str = ""; 
+  }
+
+  tostr(strexp){
+    this.str += strexp; 
+  }
+
+  establish(){
+    var res = `<svg viewBox="0 0 ${window.innerWidth} ${window.innerHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="white">${this.str}</svg>`;
+    this.mstr = ""; 
+    this.str = ""; 
+    return res; 
+  }
+}
+
+const str = new SvgParser();
+
 var ind1 = true;
 var ind2 = true;
 
@@ -51,6 +383,8 @@ var mode = 0;
 var indicate = [];
 var gradient = [];
 var current = 'black';
+var softcore = [[0], ['black']]; 
+var hardcore = []; 
 var ongoing = false;
 var diravitive = [];
 var dashed = [];
@@ -90,7 +424,7 @@ function oMousePos(e){
   return {
     x: e.clientX - rc.left,
     y: e.clientY - rc.top,
-  }
+  };
 }
 
 function turn_of(){
@@ -103,6 +437,7 @@ function step_up(indi){
   indicate.push(indi);
   linestyle.push(dashed);
   gradient.push(current);
+  hardcore.push(softcore);
 }
 
 function step_down(){
@@ -110,6 +445,7 @@ function step_down(){
   indicate.splice(-1, 1);
   linestyle.splice(-1, 1);
   gradient.splice(-1, 1);
+  hardcore.splice(-1, 1);
   diravitive.splice(-1, 1);
   filling.splice(-1, 1);
   centers.splice(-1, 1);
@@ -224,6 +560,8 @@ sweep.addEventListener('click', ()=>{
     mode = 0;
     indicate = [];
     gradient = [];
+    softcore = [[0], ['black']]; 
+    hardcore = [];
     ongoing = false;
     diravitive = [];
     linestyle = [];
@@ -247,12 +585,14 @@ function color_sel(){
   switch(arr.length){
     case 1:
       current = arr[0];
+      softcore = [[0], [arr[0]]]; 
     break;
     case 2:
       var rc = canvas.getBoundingClientRect();
       current = ctx.createLinearGradient(rc.left, rc.top, rc.right, rc.bottom);
       current.addColorStop(0, arr[0]);
       current.addColorStop(1, arr[1]);
+      softcore = [[0, 1], [arr[0], arr[1]]]; 
     break;
     case 3:
       var rc = canvas.getBoundingClientRect();
@@ -260,6 +600,7 @@ function color_sel(){
       current.addColorStop(0, arr[0]);
       current.addColorStop(0.5, arr[1]);
       current.addColorStop(1, arr[2]);
+      softcore = [[0, 0.5, 1], [arr[0], arr[1], arr[2]]]; 
     break;
     case 4:
       var rc = canvas.getBoundingClientRect();
@@ -268,6 +609,7 @@ function color_sel(){
       current.addColorStop(0.33, arr[1]);
       current.addColorStop(0.67, arr[2]);
       current.addColorStop(1, arr[3]);
+      softcore = [[0, 0.33, 0.67, 1], [arr[0], arr[1], arr[2], arr[3]]]; 
     break;
     case 5:
       var rc = canvas.getBoundingClientRect();
@@ -277,6 +619,7 @@ function color_sel(){
       current.addColorStop(0.5, arr[2]);
       current.addColorStop(0.75, arr[3]);
       current.addColorStop(1, arr[4]);
+      softcore = [[0, 0.25, 0.5, 0.75, 1], [arr[0], arr[1], arr[2], arr[3], arr[4]]]; 
     break;
   }
 }
@@ -329,7 +672,6 @@ function mu_line(e){
 }
 
 function md_draw(e){
-  drawing = true;
   mouse = oMousePos(e);
   points = [];
   ctx.strokeStyle = current;
@@ -348,8 +690,6 @@ function md_draw(e){
 }
 
 function mm_draw(e){
-  if(!drawing) return;
-  ctx.setLineDash([]);
   previous = {x:mouse.x,y:mouse.y};
   mouse = oMousePos(e);
   points.push({x:mouse.x,y:mouse.y});
@@ -360,7 +700,6 @@ function mm_draw(e){
 }
 
 function mu_draw(e){
-  drawing = false;
   pathsry.push(points);
   step_up('free hand');
   diravitive.push(parseInt(put.value));
@@ -369,12 +708,14 @@ function mu_draw(e){
 }
 
 function md_rectangle(e){
-  drawing = true;
+  assign_previous(e);
+}
+
+function md_erase(e){
   assign_previous(e);
 }
 
 function mm_rectangle(e){
-  if(!drawing) return;
   drawPaths();
   mouse = oMousePos(e);
   ctx.strokeStyle = current;
@@ -383,8 +724,18 @@ function mm_rectangle(e){
   op_poly([{x:previous.x,y:previous.y},{x:previous.x,y:mouse.y},{x:mouse.x,y:mouse.y},{x:mouse.x,y:previous.y}]);
 }
 
+function mm_erase(e){
+  drawPaths();
+  mouse = oMousePos(e);
+  ctx.strokeStyle = 'white';
+  ctx.setLineDash(dashed);
+  ctx.lineWidth = parseInt(put.value);
+  op_poly([{x:previous.x,y:previous.y},{x:previous.x,y:mouse.y},{x:mouse.x,y:mouse.y},{x:mouse.x,y:previous.y}]);
+  ctx.fillStyle = 'white'; 
+  ctx.fill(); 
+}
+
 function mu_rectangle(e){
-  drawing = false;
   mouse = oMousePos(e);
   op_poly([{x:previous.x,y:previous.y},{x:previous.x,y:mouse.y},{x:mouse.x,y:mouse.y},{x:mouse.x,y:previous.y}]);
   pathsry.push([{x:previous.x,y:previous.y},{x:previous.x,y:mouse.y},{x:mouse.x,y:mouse.y},{x:mouse.x,y:previous.y}]);
@@ -392,13 +743,23 @@ function mu_rectangle(e){
   diravitive.push(parseInt(put.value));
 }
 
+function mu_erase(e){
+  mouse = oMousePos(e);
+  op_poly([{x:previous.x,y:previous.y},{x:previous.x,y:mouse.y},{x:mouse.x,y:mouse.y},{x:mouse.x,y:previous.y}]);
+  ctx.fill(); 
+  pathsry.push([{x:previous.x,y:previous.y},{x:previous.x,y:mouse.y},{x:mouse.x,y:mouse.y},{x:mouse.x,y:previous.y}]);
+  indicate.push('erase'); 
+  linestyle.push([]); 
+  gradient.push('white'); 
+  hardcore.push([[0], ['white']]);
+  diravitive.push(parseInt(put.value));
+}
+
 function md_circ(e){
-  drawing = true;
   assign_previous(e);
 }
 
 function mm_circ(e){
-  if(!drawing) return;
   drawPaths();
   ctx.strokeStyle = current;
   ctx.setLineDash(dashed);
@@ -408,7 +769,6 @@ function mm_circ(e){
 }
 
 function mu_circ(e){
-  drawing = false;
   mouse = oMousePos(e);
   op_circ([previous, mouse]);
   pathsry.push([{x: previous.x, y: previous.y}, {x: mouse.x, y: mouse.y}]);
@@ -417,12 +777,10 @@ function mu_circ(e){
 }
 
 function md_circl(e){
-  drawing = true;
   assign_previous(e);
 }
 
 function mm_circl(e){
-  if(!drawing) return;
   drawPaths();
   ctx.strokeStyle = current;
   ctx.setLineDash(dashed);
@@ -432,7 +790,6 @@ function mm_circl(e){
 }
 
 function mu_circl(e){
-  drawing = false;
   mouse = oMousePos(e);
   op_circl([previous, mouse]);
   pathsry.push([{x: previous.x, y: previous.y}, {x: mouse.x, y: mouse.y}]);
@@ -475,7 +832,7 @@ function bezier(pts, n){
     collect.push(beach(ad, pts));
     ad += part;
   }
-  return collect
+  return collect; 
 }
 
 function ctx_bezier(pts, n){
@@ -489,7 +846,6 @@ function ctx_bezier(pts, n){
 }
 
 function md_bezi(e){
-  drawing = true;
   mouse = oMousePos(e);
   if(!ongoing){
     ongoing = true;
@@ -508,7 +864,6 @@ function md_bezi(e){
 }
 
 function mm_bezi(e){
-  if(!drawing) return;
   mouse = oMousePos(e);
   var la = pathsry[pathsry.length - 1];
   pathsry[pathsry.length - 1][la.length - 1] = {x: mouse.x, y: mouse.y}
@@ -516,37 +871,11 @@ function mm_bezi(e){
 }
 
 function mu_bezi(e){
-  drawing = false;
   mouse = oMousePos(e);
   var la = pathsry[pathsry.length - 1];
   pathsry[pathsry.length - 1][la.length - 1] = {x: mouse.x, y: mouse.y}
   drawPaths();
 }
-
-function md_erase(e){
-  drawing = true;
-  assign_previous(e);
-}
-
-function mm_erase(e){
-  if(!drawing) return;
-  drawPaths();
-  mouse = oMousePos(e);
-  ctx.lineWidth = 1;
-  op_erase([previous, mouse]);
-}
-
-function mu_erase(e){
-  drawing = false;
-  mouse = oMousePos(e);
-  op_erase([previous, mouse]);
-  pathsry.push([{x: previous.x, y: previous.y}, {x: mouse.x, y: mouse.y}]);
-  indicate.push('erase');
-  gradient.push('black');
-  linestyle.push(dashed);
-  diravitive.push(1);
-}
-
 
 function before_escape(indices){
   // first, previous
@@ -558,7 +887,7 @@ function before_escape(indices){
     return null;
   }
   var it = indicate[indices];
-  while(['move', 'rotate', 'scale'].includes(it)){
+  while(['move', 'rotate', 'scale', 'group move', 'group rotate', 'group scale'].includes(it)){
     if(indices < 0){
       return null;
     }
@@ -578,7 +907,7 @@ function after_escape(indices){
     return null;
   }
   var it = indicate[indices];
-  while(['move', 'rotate', 'scale'].includes(it)){
+  while(['move', 'rotate', 'scale', 'group move', 'group rotate', 'group scale'].includes(it)){
     if(indices > indicate.length-1){
       return null;
     }
@@ -642,7 +971,6 @@ m_.addEventListener('click', jump_next);
 m__.addEventListener('click', jump_last);
 
 function assign_l_l(){
-  if([8, 9, 10].includes(mode)) return; 
   var be = before_escape(indicate.length - 1);
   if(be != null){
     moving = be;
@@ -742,12 +1070,13 @@ function polygon_centre(cpoints){
 
 function calc_centre(){
   if(pathsry.length == 0) return; 
+  if(['group move', 'group rotate', 'group scale', 'group'].includes(indicate[indicate.length-1])) return; 
   if(mode == 8){
     centers.push(null);
     var i = Object.keys(moved)[Object.keys(moved).length - 1];
     var m = moved[Object.keys(moved)[Object.keys(moved).length - 1]][0];
     var p = moved[Object.keys(moved)[Object.keys(moved).length - 1]][1];
-    if(indicate[m] == 'rectangle'){
+    if(indicate[m] == 'rectangle' || indicate[m] == 'erase'){
       var p1 = pathsry[m][0];
       var p2 = pathsry[m][2];
       centers[m] = clc(p1, p2);
@@ -763,7 +1092,7 @@ function calc_centre(){
   }else if(mode == 9 || mode == 10){
     centers.push(null);
     return
-  }else if(mode == 3){
+  }else if(mode == 3 || mode == 7){
     var p1 = pathsry[pathsry.length-1][0];
     var p2 = pathsry[pathsry.length-1][2];
     centers.push(clc(p1, p2));
@@ -780,11 +1109,11 @@ function calc_centre(){
 
 function md_base(e, name){
   if(moving == null) return;
-  drawing = true;
   indicate.push(name);
   pathsry.push(null);
   linestyle.push(null);
   gradient.push(null);
+  hardcore.push(null);
   diravitive.push(null);
   filling.push(null);
 
@@ -793,7 +1122,7 @@ function md_base(e, name){
   var cc = indicate.length - 1;
   var ca = [];
   var te = [];
-  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon'].includes(indicate[moving])){
+  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(indicate[moving])){
     pathsry[moving].forEach(pt=>{
       te.push({x:pt.x, y:pt.y});
     });
@@ -818,7 +1147,7 @@ function move_it(dif){
   if(moving == null) return;
   var te = [];
   var referred = moved[Object.keys(moved)[Object.keys(moved).length - 1]][1];
-  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon'].includes(indicate[moving])){
+  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(indicate[moving])){
     var want = [];
     referred.forEach(pt=>{
       want.push({x: pt.x + dif[0], y: pt.y + dif[1]});
@@ -833,13 +1162,11 @@ function move_it(dif){
 }
 
 function mm_move(e){
-  if(!drawing) return;
   move_it(get_dif(e));
   drawPaths();
 }
 
 function mu_move(e){
-  drawing = false;
   move_it(get_dif(e));
   drawPaths();
 }
@@ -892,7 +1219,7 @@ function rotate_it(rt){
   if(moving == null) return;
   var te = [];
   var referred = moved[Object.keys(moved)[Object.keys(moved).length - 1]][1];
-  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon'].includes(indicate[moving])){
+  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(indicate[moving])){
     var want = [];
     referred.forEach(pt=>{
       want.push(rotate_one(centers[moving], pt, rt));
@@ -907,13 +1234,11 @@ function rotate_it(rt){
 }
 
 function mm_rotate(e){
-  if(!drawing) return;
     rotate_it(rotate_degree(centers[moving], previous, oMousePos(e)));
     drawPaths();
 }
 
 function mu_rotate(e){
-  drawing = false;
   rotate_it(rotate_degree(centers[moving], previous, oMousePos(e)));
   drawPaths();
 }
@@ -928,7 +1253,7 @@ function scale_it(ratio){
   var cen = centers[moving];
   var te = [];
   var referred = moved[Object.keys(moved)[Object.keys(moved).length - 1]][1];
-  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon'].includes(indicate[moving])){
+  if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(indicate[moving])){
     var want = [];
     referred.forEach(pt=>{
       want.push({x: (pt.x-cen.x)*ratio.x+cen.x, y: (pt.y-cen.y)*ratio.y+cen.y});
@@ -943,13 +1268,11 @@ function scale_it(ratio){
 }
 
 function mm_scale(e){
-  if(!drawing) return;
   scale_it(drag_ratio(oMousePos(e)));
   drawPaths();
 }
 
 function mu_scale(e){
-  drawing = false;
   scale_it(drag_ratio(oMousePos(e)));
   drawPaths();
 }
@@ -965,12 +1288,10 @@ function nPolyDots(n, cen, pt){
 }
 
 function md_poly(e){
-  drawing = true; 
   assign_previous(e); 
 }
 
 function mm_poly(e){
-  if(!drawing) return;
   drawPaths();
   mouse = oMousePos(e);
   ctx.strokeStyle = current;
@@ -980,7 +1301,6 @@ function mm_poly(e){
 }
 
 function mu_poly(e){
-  drawing = false;
   mouse = oMousePos(e);
   var this_path = nPolyDots(polyc, previous, oMousePos(e)); 
   op_poly(this_path); 
@@ -990,11 +1310,12 @@ function mu_poly(e){
 }
 
 function md(e){
+  drawing = true; 
   ctx.lineWidth = parseInt(put.value);
   ctx.strokeStyle = current;
   ctx.setLineDash(dashed);
-  if(finished && !ongoing && (!([8, 9, 10].includes(mode)))){
-    if(f_clicked){
+  if(finished && (!ongoing) && (!([8, 9, 10].includes(mode)))){
+    if(f_clicked || mode == 7){
       filling.push(true);
     }else{
       filling.push(false);
@@ -1023,19 +1344,31 @@ function md(e){
       md_bezi(e);
       break;
     case 7:
-      md_erase(e);
+      md_erase(e); 
       break;
     case 8:
       if(moving==null) return; 
-      md_base(e, 'move');
+      if(indicate[moving]=='group'){
+        md_base_group(e, 'group move'); 
+      }else{
+        md_base(e, 'move');
+      }
       break;
     case 9:
-      if(indicate[indicate.length-1]=='erase' || moving==null) return; 
-      md_base(e, 'rotate'); 
+      if(moving==null) return; 
+      if(indicate[moving]=='group'){
+        md_base_group(e, 'group rotate'); 
+      }else{
+        md_base(e, 'rotate');
+      }
       break; 
     case 10:
       if(moving==null) return; 
-      md_base(e, 'scale'); 
+      if(indicate[moving]=='group'){
+        md_base_group(e, 'group scale'); 
+      }else{
+        md_base(e, 'scale');
+      }
       break; 
     case 11:
       md_poly(e); 
@@ -1044,6 +1377,7 @@ function md(e){
 }
 
 function mm(e){
+  if(!drawing) return; 
   switch (mode) {
     case 0:
       return
@@ -1071,27 +1405,40 @@ function mm(e){
       break;
     case 8:
       if(moving==null) return; 
-      mm_move(e);
+      if(indicate[moving]=='group'){
+        mm_move_group(e); 
+      }else{
+        mm_move(e);
+      }
       break;
     case 9:
-      if(indicate[indicate.length-1]=='erase' || moving==null) return; 
-      mm_rotate(e);
+      if(moving==null) return; 
+      if(indicate[moving]=='group'){
+        mm_rotate_group(e); 
+      }else{
+        mm_rotate(e);
+      }
       break;
     case 10:
       if(moving==null) return; 
-      mm_scale(e);
+      if(indicate[moving]=='group'){
+        mm_scale_group(e);
+      }else{
+        mm_scale(e);
+      }      
       break; 
     case 11:
       mm_poly(e); 
       break; 
   }
-  if(f_clicked && drawing){
+  if(f_clicked && drawing && (mode != 7)){
     ctx.fillStyle = current;
     ctx.fill();
   }
 }
 
 function mu(e){
+  drawing = false; 
   switch (mode) {
     case 0:
       return
@@ -1119,21 +1466,33 @@ function mu(e){
       break;
     case 8:
       if(moving==null) return; 
-      mu_move(e);
+      if(indicate[indicate.length-1]=='group move'){
+        mm_move_group(e);
+      }else{
+        mu_move(e);
+      }  
       break;
     case 9:
-      if(indicate[indicate.length-1]=='erase' || moving==null) return; 
-      mu_rotate(e);
+      if(moving==null) return; 
+      if(indicate[indicate.length-1]=='group rotate'){
+        mm_rotate_group(e);
+      }else{
+        mu_rotate(e);
+      }  
       break; 
     case 10:
       if(moving==null) return; 
-      mu_scale(e); 
+      if(indicate[indicate.length-1]=='group scale'){
+        mm_scale_group(e);
+      }else{
+        mu_scale(e);
+      }  
       break; 
     case 11:
       mu_poly(e); 
       break; 
   }
-  if(f_clicked){
+  if(f_clicked && (mode != 7)){
     ctx.fillStyle = current;
     ctx.fill();
   }
@@ -1187,54 +1546,20 @@ function op_bezi(patharr){
   ctx_bezier(patharr, 100);
 }
 
-function op_erase(patharr){
-  var pre = patharr[0];
-  var mou = patharr[1];
-  var x = 0;
-  var y = 0;
-  var width = 0;
-  var height = 0;
-  switch([previous.x < mouse.x, previous.y < mouse.y].join(" ")){
-    case "true false":
-      x = pre.x;
-      y = mou.y;
-      width = mou.x - pre.x;
-      height = pre.y - mou.y;
-    break;
-    case "false true":
-      x = mou.x;
-      y = pre.y;
-      width = pre.x - mou.x;
-      height = mou.y - pre.y;
-    break;
-    case "false false":
-      x = mou.x;
-      y = mou.y;
-      width = pre.x - mou.x;
-      height = pre.y - mou.y;
-    break;
-    case "true true":
-      x = pre.x;
-      y = pre.y;
-      width = mou.x - pre.x;
-      height = mou.y - pre.y;
-    break;
-  }
-  ctx.clearRect(x, y, width, height);
-}
-
 function drawPaths(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for(let d = 0; d < pathsry.length; d++){
     let indarr = indicate[d];
-    if(['move', 'rotate', 'scale'].includes(indarr)){continue;};
+    if(['move', 'rotate', 'scale', 'group move', 'group rotate', 'group scale'].includes(indarr)){continue;};
     let patarr = pathsry[d];
     let ls = linestyle[d];
     let tf = filling[d];
-    ctx.lineWidth = diravitive[d];
-    ctx.strokeStyle = gradient[d];
-    ctx.setLineDash(ls);
-     switch (indarr){
+    if(indarr != 'group'){
+      ctx.lineWidth = diravitive[d];
+      ctx.strokeStyle = gradient[d];
+      ctx.setLineDash(linestyle[d]);
+    }
+    switch (indarr){
       case 'free hand':
         op_line(patarr);
       break;
@@ -1254,10 +1579,13 @@ function drawPaths(){
         op_bezi(patarr);
       break;
       case 'erase':
-        op_erase(patarr);
+        op_poly(patarr);
       break;
       case 'polygon':
         op_poly(patarr);
+      break; 
+      case 'group':
+        patarr.op_group(); 
       break; 
     }
     if(tf){
@@ -1270,7 +1598,6 @@ function drawPaths(){
 canvas.addEventListener('mousedown', e=>{
   isolate = false; 
   if(esp) return;
-  drawing = true;
   md(e);
 });
 
@@ -1279,7 +1606,6 @@ canvas.addEventListener('mousemove', e=>{
 });
 
 canvas.addEventListener('mouseup', e=>{
-  drawing = false;
   mu(e);
 });
 
@@ -1301,7 +1627,7 @@ function undo_base(){
     var i = Object.keys(moved)[Object.keys(moved).length - 1];
     var mpc = moved[Object.keys(moved)[Object.keys(moved).length - 1]];
     step_down();
-    if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon'].includes(indicate[mpc[0]])){
+    if(['free hand', 'point sketch', 'rectangle', 'bezier curve', 'polygon', 'erase'].includes(indicate[mpc[0]])){
       pathsry[mpc[0]] = mpc[1];
       centers[mpc[0]] = mpc[2]; 
     }else{
@@ -1331,6 +1657,15 @@ function u_n_d_o(){
     case 'scale':
       undo_base();
       break;
+    case 'group move':
+      Group.regret(); 
+      break; 
+    case 'group rotate':
+      Group.regret(); 
+      break; 
+    case 'group scale':
+      Group.regret(); 
+      break; 
     default:
       step_down();
       drawPaths();
@@ -1339,8 +1674,9 @@ function u_n_d_o(){
 }
 
 undo.addEventListener('click', u_n_d_o);
+grp.addEventListener('click', ctrl_c_group);
 
-stick.addEventListener('click', ()=>{
+function set_stick(){
   isolate = false; 
   l_clicked = button_click(l_clicked, stick);
   turn_of();
@@ -1349,7 +1685,9 @@ stick.addEventListener('click', ()=>{
   }else{
     sticked = true;
   }
-});
+}
+
+stick.addEventListener('click', set_stick);
 
 function set_dash(){
   if(dashed.length == 0){
@@ -1357,7 +1695,7 @@ function set_dash(){
       window.alert('Please enter a positive number')
       dashed = [10, 10];
     }else{
-      dashed = [put.value, put.value];
+      dashed = [parseInt(put.value), parseInt(put.value)];
     }
   }else{
     dashed = [];
@@ -1371,11 +1709,13 @@ dash.addEventListener('click', ()=>{
   set_dash();
 })
 
-filled.addEventListener('click', ()=>{
+function set_fill(){
   isolate = false; 
   f_clicked = button_click(f_clicked, filled);
   turn_of();
-})
+}
+
+filled.addEventListener('click', set_fill);
 
 function top_control(){
   if(ind2){
@@ -1420,6 +1760,138 @@ window.addEventListener('resize', ()=>{
   drawPaths();
 });
 
+function svg_line(patharr){
+  str.tostr('<path d="'); 
+  str.tostr(`M${patharr[0].x} ${patharr[0].y}`);
+  for(let i = 1; i < patharr.length; i++){
+    str.tostr(`L${patharr[i].x} ${patharr[i].y}`); 
+  } 
+  str.tostr('"'); 
+}
+
+function svg_poly(patharr){
+  str.tostr('<path d="'); 
+  str.tostr(`M${patharr[0].x} ${patharr[0].y}`);
+  for(let i = 1; i < patharr.length; i++){
+    str.tostr(`L${patharr[i].x} ${patharr[i].y}`); 
+  } 
+  str.tostr('Z"');
+}
+
+function svg_bezi(patharr){
+  var ref = bezier(patharr, 100); 
+  svg_line(ref); 
+}
+
+function distance(pt1, pt2){
+  return (Math.round((((pt2.x-pt1.x)**2)+((pt2.y-pt1.y)**2))**0.5)*1000)/1000; 
+}
+
+function svg_two_c(patharr){
+  var scen = clc(patharr[0], patharr[1]); 
+  var srad = distance(scen, patharr[1]);
+  str.tostr(`<circle cx="${scen.x}" cy="${scen.y}" r="${srad}"`); 
+}
+
+function svg_circ(patharr){
+  var scen = patharr[0]; 
+  var srad = distance(scen, patharr[1]);
+  str.tostr(`<circle cx="${scen.x}" cy="${scen.y}" r="${srad}"`); 
+}
+
+function svg_grad(thecore){
+  str.tostr(`<defs><linearGradient id="${sgl.new_id()}">`);
+  for(let i=0; i<thecore[0].length; i++){
+    str.tostr(`<stop offset="${thecore[0][i]}" stop-color="${thecore[1][i]}" />`);
+  }
+  str.tostr('</linearGradient></defs>');
+}
+
+function svg_color(strep, strfill){
+  if(strfill){
+    str.tostr(` stroke="${strep}" fill="${strep}"`);
+  }else{
+    str.tostr(` stroke="${strep}" fill="none"`);
+  }
+}
+
+function svg_dash(strdash, strdera){
+  str.tostr(` stroke-width="${strdera}"`); 
+  if(strdash.length != 0){
+    str.tostr(` stroke-dasharray="${strdash.join(',')}"`);
+  }else{
+    str.tostr(` stroke-linecap="round"`); 
+  }
+  str.tostr(" />"); 
+}
+
+function dprocess(svg_func, args){
+  if(args[3][0].length == 1){
+    svg_func(args[0]); 
+    svg_color(args[3][1][0], args[5]); 
+  }else{
+    svg_grad(args[3]); 
+    svg_func(args[0]); 
+    svg_color(`url(\'#${sgl.last_id()}\')`, args[5]); 
+  }
+  svg_dash(args[2], args[4]); 
+}
+
+// args =  [_pathsry, _indicate, _linestyle, _hardcore, _diravitive, _filling] 
+function oneSvgPath(...args){
+  switch (args[1]) {
+    case 'free hand': 
+      dprocess(svg_line, args); 
+    break; 
+    case 'point sketch':
+      dprocess(svg_line, args); 
+    break; 
+    case 'rectangle':
+      dprocess(svg_poly, args); 
+    break; 
+    case 'polygon':
+      dprocess(svg_poly, args); 
+    break; 
+    case 'two point circle':
+      dprocess(svg_two_c, args); 
+    break; 
+    case 'circle':
+      dprocess(svg_circ, args); 
+    break; 
+    case 'bezier curve':
+      dprocess(svg_bezi, args); 
+    break; 
+    case 'erase':
+      dprocess(svg_poly, args); 
+    break;       
+  }
+}
+
+function svgPaths(){
+    for(let d = 0; d < pathsry.length; d++){
+      if(['move', 'rotate', 'scale'].includes(indicate[d])){continue;};
+      if(indicate[d] == 'group'){
+        pathsry[d].publish(); 
+      }else{
+        oneSvgPath(pathsry[d], indicate[d], linestyle[d], hardcore[d], diravitive[d], filling[d]); 
+      }
+  }
+  sgl.rein();
+  return str.establish(); 
+}
+
+function set_save(){
+  const el = document.createElement('textarea');
+  el.value = svgPaths();
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
+  window.alert('Successfully copied to your clipboard!'); 
+}
+
+sv.addEventListener('click', set_save);
+
 function KeyPress(e) {
   if(isolate) return; 
   var evtobj = window.event? event : e
@@ -1430,16 +1902,26 @@ function KeyPress(e) {
     top_control()
   }else if (evtobj.keyCode == 190) {
     right_control();
-  }else if (evtobj.keyCode == 13){
+  }else if (evtobj.keyCode == 68){
     turn_of();
-    d_clicked = false;
-    dash.classList.add('pressdown');
     set_dash();
-    d_clicked = true;
+    if(d_clicked){
+      dash.classList.remove('pressdown');
+      d_clicked = false;
+    }else{
+      dash.classList.add('pressdown');
+      d_clicked = true;
+    }
   }else if (evtobj.keyCode == 37){
     jump_previous(); 
   }else if (evtobj.keyCode == 39){
     jump_next(); 
+  }else if (evtobj.keyCode == 83){
+    set_stick();
+  }else if (evtobj.keyCode == 70){
+    set_fill(); 
+  }else if(evtobj.keyCode == 67 && evtobj.ctrlKey){
+    ctrl_c_group(); 
   }
 }
 
