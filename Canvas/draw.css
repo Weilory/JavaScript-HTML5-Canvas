@@ -17,14 +17,14 @@
 }
 
 .move_firs{
-	margin_left: 5px;
-	margin_right: 0;
+	margin-left: 5px;
+	margin-right: 0;
 }
 
 .move_prev{
 	color: red;
-	margin_left: 0;
-	margin_right: 0;
+	margin-left: 0;
+	margin-right: 0;
 }
 
 .label{
@@ -35,13 +35,13 @@
 
 .move_next{
 	color: blue;
-	margin_left: 0;
-	margin_right: 0;
+	margin-left: 0;
+	margin-right: 0;
 }
 
 .move_last{
-	margin_left: 0;
-	margin_right: 5px;
+	margin-left: 0;
+	margin-right: 5px;
 }
 
 .tooltip {
@@ -94,7 +94,9 @@
   right: 0;
 }
 
-#undo{
+#undo, 
+#sv,
+#grp{
   margin: 5px;
   background-color: #e7e7e7;
   border: none;
@@ -104,7 +106,13 @@
   font-size: 30px;
 }
 
-#undo:hover{
+#grp{
+  color: orange;
+}
+
+#undo:hover, 
+#sv:hover,
+#grp:hover{
   background-color: #add3e6;
 }
 
