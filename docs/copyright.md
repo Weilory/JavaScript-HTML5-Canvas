@@ -52,4 +52,17 @@ implemented = ['freehand', 'pointsketch', 'rectangle', 'two point circle', 'circ
 control = ['undo', 'stick', 'dash', 'fill', 'color1', 'color2', 'color3', 'color4', 'color5'] <br />
 visible = ['topl panel', 'option'] <br />
 missing = ['save']
+
+![house](https://github.com/Weilory/JavaScript-HTML5-Canvas/blob/master/docs/gif/house.gif)
+
+<br /><br />
+10/07/2020 - third release. <br />
+implemented = ['freehand', 'pointsketch', 'rectangle', 'two point circle', 'circle', 'bezier curve', 'eraser', 'sweep', 'polygon', 'move', 'rotate', 'scale'] <br />
+control = ['undo', 'stick', 'dash', 'fill', 'color1', 'color2', 'color3', 'color4', 'color5'] <br />
+visible = ['topl panel', 'option'] <br />
+save = ['svg'] <br />
+missing = ['text']
+
+![exp2](https://github.com/Weilory/JavaScript-HTML5-Canvas/blob/master/docs/gif/exp2.gif)
+
 <br /><br />
