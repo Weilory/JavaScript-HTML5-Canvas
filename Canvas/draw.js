@@ -1024,10 +1024,7 @@ function clc(pt1, pt2){
 function avoid_lim(pair){
   if(pair[0].x  == pair[1].x){
     return [{x:pair[0].x+0.01,y:pair[0].y}, pair[1]]; 
-  }else{
-    return pair; 
-  }
-  if(pair[0].y == pair[1].y){
+  }else if(pair[0].y == pair[1].y){
     return [{x:pair[0].x, y:pair[0].y+0.01}, pair[1]]; 
   }else{
     return pair; 
@@ -1376,8 +1373,35 @@ function md(e){
   }
 }
 
+function dirrect(e){
+  var mou = oMousePos(e); 
+  var a = previous.x; 
+  var b = previous.y; 
+  var m = mou.x; 
+  var n = mou.y; 
+  if(a < m && b > n){
+    return [a, n, m, b]; 
+  }else if(a < m && b < n){
+    return [a, b, m, n];
+  }else if(a > m && b < n){
+    return [m, b, a, n]; 
+  }else{
+    return [m, n, a, b]; 
+  }
+}
+
+function update_current(e){
+  if(softcore[0].length == 1) return; 
+  var cr = dirrect(e); 
+  current = ctx.createLinearGradient(cr[0], cr[1], cr[2], cr[3]);
+  for(let i=0; i<softcore[0].length; i++){
+    current.addColorStop(softcore[0][i], softcore[1][i]); 
+  }
+}
+
 function mm(e){
   if(!drawing) return; 
+  update_current(e);
   switch (mode) {
     case 0:
       return
